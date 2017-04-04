@@ -11,12 +11,17 @@ import java.text.SimpleDateFormat
 
 preferences {  }
 
+<<<<<<< HEAD
 def devVer() { return "4.5.1" }
+=======
+def devVer() { return "5.0.0" }
+>>>>>>> tonesto7/master
 
 // for the UI
 metadata {
 	definition (name: "${textDevName()}", namespace: "tonesto7", author: "DesertBlade") {
 
+		capability "Actuator"
 		capability "Presence Sensor"
 		capability "Sensor"
 		capability "Refresh"
@@ -28,6 +33,7 @@ metadata {
 		command "setHome"
 		command "setAway"
 
+		attribute "devVer", "string"
 		attribute "lastConnection", "string"
 		attribute "apiStatus", "string"
 		attribute "debugOn", "string"
@@ -42,8 +48,8 @@ metadata {
 
 	tiles(scale: 2) {
 		standardTile("presence", "device.presence", width: 4, height: 4, canChangeBackground: true) {
-			state("present", 	labelIcon:"st.presence.tile.mobile-present", 	backgroundColor:"#53a7c0", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/nest_dev_pres_icon.png")
-			state("not present",labelIcon:"st.presence.tile.mobile-not-present",backgroundColor:"#ebeef2", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/nest_dev_away_icon.png")
+			state("present", 	labelIcon:"st.presence.tile.mobile-present", 	backgroundColor:"#00a0dc", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/nest_dev_pres_icon.png")
+			state("not present",labelIcon:"st.presence.tile.mobile-not-present",backgroundColor:"#cccccc", icon:"https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/nest_dev_away_icon.png")
 		}
 		standardTile("nestPresence", "device.nestPresence", width:2, height:2, decoration: "flat") {
 			state "home",	action: "setPresence",	icon: "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Images/Devices/pres_home_icon.png"
@@ -82,8 +88,13 @@ void installed() {
 }
 
 def initialize() {
-	LogAction("initialize")
-	verifyHC()
+	LogAction("initialized...")
+	if (!state.updatedLastRanAt || now() >= state.updatedLastRanAt + 2000) {
+		state.updatedLastRanAt = now()
+		verifyHC()
+	} else {
+		log.trace "initialize(): Ran within last 2 seconds - SKIPPING"
+	}
 }
 
 void updated() {
@@ -147,6 +158,7 @@ def processEvent(data) {
 		if(eventData) {
 			state.showLogNamePrefix = eventData?.logPrefix == true ? true : false
 			state.enRemDiagLogging = eventData?.enRemDiagLogging == true ? true : false
+			state.healthMsg = eventData?.healthNotify == true ? true : false
 			if(eventData.hcTimeout && (state?.hcTimeout != eventData?.hcTimeout || !state?.hcTimeout)) {
 				state.hcTimeout = eventData?.hcTimeout
 				verifyHC()
@@ -161,6 +173,7 @@ def processEvent(data) {
 			deviceVerEvent(eventData?.latestVer.toString())
 			if(eventData?.allowDbException) { state?.allowDbException = eventData?.allowDbException = false ? false : true }
 			lastUpdatedEvent(true)
+			checkHealth()
 		}
 		//This will return all of the devices state data to the logs.
 		//log.debug "Device State Data: ${getState()}"
@@ -218,7 +231,10 @@ def deviceVerEvent(ver) {
 	def newData = isCodeUpdateAvailable(pubVer, dVer) ? "${dVer}(New: v${pubVer})" : "${dVer}" as String
 	state?.devTypeVer = newData
 	state?.updateAvailable = isCodeUpdateAvailable(pubVer, dVer)
-	if(!curData?.equals(newData)) {
+	if(isStateChange(device, "devVer", dVer.toString())) {
+		sendEvent(name: 'devVer', value: dVer, displayed: false)
+	}
+	if(isStateChange(device, "devTypeVer", newData.toString())) {
 		Logger("UPDATED | Device Type Version is: (${newData}) | Original State: (${curData})")
 		sendEvent(name: 'devTypeVer', value: newData, displayed: false)
 	} else { LogAction("Device Type Version is: (${newData}) | Original State: (${curData})") }
@@ -228,10 +244,10 @@ def debugOnEvent(debug) {
 	def val = device.currentState("debugOn")?.value
 	def stateVal = debug ? "On" : "Off"
 	state.debug = debug ? true : false
-	if(!val.equals(stateVal)) {
-		log.debug("UPDATED | debugOn: (${stateVal}) | Original State: (${val})")
+	if(isStateChange(device, "debugOn", stateVal.toString())) {
+		log.debug("UPDATED | Device Debug Logging is: (${stateVal}) | Original State: (${val})")
 		sendEvent(name: 'debugOn', value: stateVal, displayed: false)
-	} else { LogAction("debugOn: (${stateVal}) | Original State: (${val})") }
+	} else { LogAction("Device Debug Logging is: (${stateVal}) | Original State: (${val})") }
 }
 
 def lastUpdatedEvent(sendEvt=false) {
@@ -267,7 +283,7 @@ def presenceEvent(presence) {
 	def statePres = state?.present
 	state?.present = (pres == "present") ? true : false
 	state?.nestPresence = newNestPres
-	if(!val.equals(pres) || !nestPres.equals(newNestPres) || !nestPres) {
+	if(isStateChange(device, "presence", pres.toString()) || isStateChange(device, "nestPresence", newNestPres.toString()) || !nestPres) {
 		Logger("UPDATED | Presence: ${pres} | Original State: ${val} | State Variable: ${statePres}")
 		sendEvent(name: 'nestPresence', value: newNestPres, descriptionText: "Nest Presence is: ${newNestPres}", displayed: true, isStateChange: true )
 		sendEvent(name: 'presence', value: pres, descriptionText: "Device is: ${pres}", displayed: true, isStateChange: true )
@@ -278,7 +294,7 @@ def apiStatusEvent(issue) {
 	def curStat = device.currentState("apiStatus")?.value
 	def newStat = issue ? "issue" : "ok"
 	state?.apiStatus = newStat
-	if(!curStat.equals(newStat)) {
+	if(isStateChange(device, "apiStatus", newStat.toString())) {
 		Logger("UPDATED | API Status is: (${newStat}) | Original State: (${curStat})")
 		sendEvent(name: "apiStatus", value: newStat, descriptionText: "API Status is: ${newStat}", displayed: true, isStateChange: true, state: newStat)
 	} else { LogAction("API Status is: (${newStat}) | Original State: (${curStat})") }
@@ -290,6 +306,16 @@ def getNestPresence() {
 
 def getPresence() {
 	return !device.currentState("presence") ? "present" : device.currentState("presence").value.toString()
+}
+
+def getHealthStatus() {
+	return device?.getStatus()
+}
+
+def checkHealth() {
+	def isOnline = (getHealthStatus() == "ONLINE") ? true : false
+	if(isOnline || state?.healthMsg != true) { return }
+	parent?.deviceHealthNotify(this, isOnline)
 }
 
 /************************************************************************************************
@@ -427,27 +453,6 @@ def getTimeDiffSeconds(strtDate, stpDate=null, methName=null) {
 	}
 }
 
-def getImgBase64(url,type) {
-	def params = [
-		uri: url,
-		contentType: 'image/$type'
-	]
-	httpGet(params) { resp ->
-		if(resp.data) {
-			def respData = resp?.data
-			ByteArrayOutputStream bos = new ByteArrayOutputStream()
-			int len
-			int size = 3072
-			byte[] buf = new byte[size]
-			while ((len = respData.read(buf, 0, size)) != -1)
-				bos.write(buf, 0, len)
-			buf = bos.toByteArray()
-			String s = buf?.encodeBase64()
-			return s ? "data:image/${type};base64,${s.toString()}" : null
-		}
-	}
-}
-
 def getFileBase64(url,preType,fileType) {
 	def params = [
 		uri: url,
@@ -474,20 +479,16 @@ def getFileBase64(url,preType,fileType) {
 def getCssData() {
 	def cssData = null
 	def htmlInfo = state?.htmlInfo
-	state?.cssData = null
 	if(htmlInfo?.cssUrl && htmlInfo?.cssVer) {
-		//LogAction("getCssData: CSS Data is Missing | Loading Data from Source...")
 		cssData = getFileBase64(htmlInfo.cssUrl, "text", "css")
-		state?.cssData = cssData
 		state?.cssVer = htmlInfo?.cssVer
 	} else {
-		//LogAction("getCssData: No Stored CSS Data Found for Device... Loading for Static URL...")
 		cssData = getFileBase64(cssUrl(), "text", "css")
 	}
 	return cssData
 }
 
-def cssUrl()	 { return "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Documents/css/ST-HTML.css" }
+def cssUrl() { return "https://raw.githubusercontent.com/tonesto7/nest-manager/master/Documents/css/ST-HTML.min.css" }
 
 def getHtml() {
 	try {
