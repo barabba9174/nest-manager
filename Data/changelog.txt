@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 V5.0.0 (March 30th, 2017):
 ▔▔▔▔▔▔▔▔▔▔▔
 Manager App:
@@ -98,6 +99,8 @@ V4.0.0 (October 28th, 2016):
  • V4.0.0 Release
  
 =======
+=======
+>>>>>>> tonesto7/master
 V5.0.2 (April 2nd, 2017):
 ▔▔▔▔▔▔▔▔▔▔▔
 Manager App:
@@ -136,4 +139,7 @@ Manager App:
  • NEW: Humidity Control Automation;  Works with Switch controlled humidifiers (*** Requires a third-party DTH for HVAC humidifiers)
  • FIXED: Fixed input status text to auto-sort by device name
  • FIXED: There were dozen's of cleanups and bug-fixes
+<<<<<<< HEAD
+>>>>>>> tonesto7/master
+=======
 >>>>>>> tonesto7/master
