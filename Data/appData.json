@@ -15,11 +15,7 @@
         "message": "",
         "type": "info",
         "devBannerMsg": {
-<<<<<<< HEAD
-            "msgId": "7lVTfVFGjHA",
-=======
             "msgId": "7lVTfVCjHA",
->>>>>>> tonesto7/master
             "message": "You must obey me at all costs ;)",
             "type": "warn",
             "expireDt": "Wed Feb 15 00:00:00 EST 2017"
@@ -33,44 +29,25 @@
         "setupVersion": 2,
         "versions": {
             "app": {
-<<<<<<< HEAD
-                "ver": "4.5.2"
-            },
-            "thermostat": {
-                "ver": "4.5.2"
-            },
-            "protect": {
-                "ver": "4.5.1"
-            },
-            "camera": {
-                "ver": "2.5.1"
-            },
-            "presence": {
-                "ver": "4.5.1"
-            },
-            "weather": {
-                "ver": "4.5.2"
-=======
-                "ver": "5.0.2"
+                "ver": "5.0.3"
             },
             "autoapp": {
-                "ver": "5.0.0"
+                "ver": "5.0.1"
             },
             "thermostat": {
-                "ver": "5.0.0"
+                "ver": "5.0.1"
             },
             "protect": {
-                "ver": "5.0.0"
+                "ver": "5.0.1"
             },
             "camera": {
-                "ver": "5.0.0"
+                "ver": "5.0.2"
             },
             "presence": {
-                "ver": "5.0.0"
+                "ver": "5.0.1"
             },
             "weather": {
-                "ver": "5.0.1"
->>>>>>> tonesto7/master
+                "ver": "5.0.2"
             }
         }
     },
@@ -108,13 +85,8 @@
         "count": 8
     },
     "eventStreaming": {
-<<<<<<< HEAD
-        "enabled": true,
-        "minServiceVer": "0.1.0"
-=======
         "enabled": false,
         "minVersion": "0.4.0"
->>>>>>> tonesto7/master
     },
     "healthcheck": {
         "camTimeout": 120,
@@ -126,12 +98,7 @@
         "enabled": true
     },
     "devStatusPage": {
-<<<<<<< HEAD
-        "enabled": true,
-        "path": "/Data/status_content.txt"
-=======
         "enabled": false,
         "path": ""
->>>>>>> tonesto7/master
     }
 }
